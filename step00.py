@@ -27,7 +27,15 @@ class Square(Function):
         y=x**2
         return y
 
+class Exp(Function):
+    #input:Variable.data
+    #output:Variable.data
+    def forward(self, x):
+        y=np.exp(x)
+        return y
+    
 x=Variable(np.array(10))
-f=Square()
-y=f(x)
+a=Square()(x)
+b=Exp()(a)
+y=Square()(b)
 print(y.data)
