@@ -1,6 +1,9 @@
 import numpy as np
 class Variable:
     def __init__(self,data):
+        if data is not None:
+            if not isinstance(data, np.ndarray):
+                raise TypeError('{} is not supported'.format(type(data)))
         self.data=data #ndarry
         self.grad=None #ndarry
         self.creator=None #Function
@@ -14,6 +17,8 @@ class Variable:
             x.grad=f.backward(self.grad)
             x.backward() #recursion'''
         #loop
+        if self.grad is None:
+            self.grad=np.ones_like(self.data)
         funcs=[self.creator]
         while funcs:
             f=funcs.pop()
@@ -21,6 +26,10 @@ class Variable:
             x.grad=f.backward(y.grad)
             if x.creator is not None:
                 funcs.append(x.creator)
+def as_array(x):
+    if np.isscalar(x):
+        return np.array(x)
+    return x
 
 class Function:
     #object:get data from Variable
@@ -31,7 +40,7 @@ class Function:
     def __call__(self,input):
         x=input.data #get data from Variable
         y=self.forward(x)
-        output=Variable(y) # put calculation result into Variable
+        output=Variable(as_array(y)) # put calculation result into Variable
         output.set_creator(self)
         self.input=input
         self.output=output
@@ -62,6 +71,10 @@ class Square(Function):
         x=self.input.data
         gx=2*x*gy
         return gx
+#input:Variable
+#output:Variable
+def square(x):
+    return Square()(x)
 
 class Exp(Function):
     #input:Variable.data
@@ -75,6 +88,10 @@ class Exp(Function):
         x=self.input.data
         gx=np.exp(x)*gy
         return gx
+#input:Variable
+#output:Variable
+def exp(x):
+    return Exp()(x)
 
 #input:Function,Variable,eps=1e-4
 #output:number
@@ -88,15 +105,7 @@ def numerical_diff(f,x,eps=1e-4):
 
 
 ### check ###
-A=Square()
-B=Exp()
-C=Square()
-
 x=Variable(np.array(0.5))
-a=A(x)
-b=B(a)
-y=C(b)
-
-y.grad=np.array(1.0)
+y=square(exp(square(x)))
 y.backward()
 print(x.grad)
