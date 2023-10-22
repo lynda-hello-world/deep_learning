@@ -33,9 +33,23 @@ class Exp(Function):
     def forward(self, x):
         y=np.exp(x)
         return y
-    
-x=Variable(np.array(10))
-a=Square()(x)
-b=Exp()(a)
-y=Square()(b)
-print(y.data)
+
+#input:Function,Variable,eps=1e-4
+#output:number
+def numerical_diff(f,x,eps=1e-4):
+    x0=Variable(x.data-eps)
+    x1=Variable(x.data+eps)
+    y0=f(x0)
+    y1=f(x1)
+    dy=(y1.data-y0.data)/(2*eps)
+    return dy
+
+def f(x):
+    A=Square()
+    B=Exp()
+    C=Square()
+    return C(B(A(x)))
+
+x=Variable(np.array(0.5))
+dy=numerical_diff(f,x)
+print(dy)
