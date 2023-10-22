@@ -7,11 +7,20 @@ class Variable:
     def set_creator(self,func):
         self.creator=func
     def backward(self):
-        f=self.creator
+        #recursion
+        '''f=self.creator
         if f is not None:
             x=f.input
             x.grad=f.backward(self.grad)
-            x.backward() #recursion
+            x.backward() #recursion'''
+        #loop
+        funcs=[self.creator]
+        while funcs:
+            f=funcs.pop()
+            x,y=f.input,f.output
+            x.grad=f.backward(y.grad)
+            if x.creator is not None:
+                funcs.append(x.creator)
 
 class Function:
     #object:get data from Variable
