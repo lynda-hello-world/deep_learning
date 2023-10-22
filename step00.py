@@ -3,6 +3,15 @@ class Variable:
     def __init__(self,data):
         self.data=data #ndarry
         self.grad=None #ndarry
+        self.creator=None #Function
+    def set_creator(self,func):
+        self.creator=func
+    def backward(self):
+        f=self.creator
+        if f is not None:
+            x=f.input
+            x.grad=f.backward(self.grad)
+            x.backward() #recursion
 
 class Function:
     #object:get data from Variable
@@ -11,10 +20,12 @@ class Function:
     #output:Variable
     #instance variables:input
     def __call__(self,input):
-        self.input=input
         x=input.data #get data from Variable
         y=self.forward(x)
         output=Variable(y) # put calculation result into Variable
+        output.set_creator(self)
+        self.input=input
+        self.output=output
         return output
     #object:calculation
     #input:Variable.data
@@ -66,6 +77,8 @@ def numerical_diff(f,x,eps=1e-4):
     dy=(y1.data-y0.data)/(2*eps)
     return dy
 
+
+### check ###
 A=Square()
 B=Exp()
 C=Square()
@@ -76,8 +89,5 @@ b=B(a)
 y=C(b)
 
 y.grad=np.array(1.0)
-b.grad=C.backward(y.grad)
-a.grad=B.backward(b.grad)
-x.grad=A.backward(a.grad)
-
+y.backward()
 print(x.grad)
