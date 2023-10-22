@@ -1,4 +1,3 @@
-from ast import FunctionDef
 import numpy as np
 class Variable:
     def __init__(self,data):
